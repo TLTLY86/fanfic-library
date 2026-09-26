@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fic Library</title>
+<style>
+  :root{
+    --paper: #ece6da;
+    --paper-raised: #f5f1e7;
+    --ink: #2a2620;
+    --ink-soft: #5c5545;
+    --line: #cfc5ad;
+    --accent: #74354a;
+    --accent-soft: #a9748a;
+    --tag-bg: #ddd3ba;
+    --status-complete: #4b6b53;
+    --status-ongoing: #a3712c;
+    --status-oneshot: #4a5a73;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    line-height:1.5;
+  }
+
+  .wrap{
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  header.site{
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 18px;
+    margin-bottom: 28px;
+  }
+
+  header.site h1{
+    font-size: 2rem;
+    margin: 0 0 4px;
+    letter-spacing: 0.5px;
+  }
+
+  header.site p{
+    margin:0;
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    font-style: italic;
+  }
+
+  /* controls */
+  .controls{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 24px;
+    align-items:center;
+  }
+
+  #search{
+    flex: 1 1 220px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    background: var(--paper-raised);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.95rem;
+  }
+  #search:focus{ outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  select{
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    background: var(--paper-raised);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.9rem;
+  }
+
+  .status-filters{
+    display:flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .status-filters button{
+    font-family: inherit;
+    font-size: 0.82rem;
+    padding: 7px 12px;
+    border: 1px solid var(--line);
+    background: var(--paper-raised);
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .status-filters button.active{
+    background: var(--ink);
+    color: var(--paper-raised);
+    border-color: var(--ink);
+  }
+
+  .count{
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+    margin-bottom: 14px;
+  }
+
+  /* cards */
+  .card{
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    cursor: pointer;
+    transition: border-left-color 0.15s ease;
+  }
+  .card:hover{ border-left-color: var(--accent-soft); }
+  .card:focus-visible{ outline: 2px solid var(--accent); }
+
+  .card-top{
+    display:flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .card h3{
+    margin: 0;
+    font-size: 1.15rem;
+  }
+
+  .badge{
+    font-family: Verdana, sans-serif;
+    font-size: 0.68rem;
+    text-transform: lowercase;
+    padding: 3px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+    color: #fff;
+  }
+  .badge.complete{ background: var(--status-complete); }
+  .badge.ongoing{ background: var(--status-ongoing); }
+  .badge.oneshot{ background: var(--status-oneshot); }
+
+  .fandom{
+    margin: 4px 0 8px;
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+
+  .tags{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .tag{
+    font-family: Verdana, sans-serif;
+    font-size: 0.72rem;
+    background: var(--tag-bg);
+    color: var(--ink-soft);
+    padding: 3px 8px;
+  }
+
+  .meta-line{
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+  }
+
+  .empty{
+    padding: 40px 10px;
+    text-align:center;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+
+  /* detail view */
+  .back{
+    background:none;
+    border:none;
+    color: var(--accent);
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor:pointer;
+    padding: 0 0 20px;
+    text-decoration: underline;
+  }
+
+  .detail h2{
+    margin: 0 0 4px;
+    font-size: 1.6rem;
+  }
+
+  .chapter-list{
+    margin-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+
+  .chapter-row{
+    display:flex;
+    justify-content: space-between;
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--line);
+    cursor:pointer;
+  }
+  .chapter-row:hover{ background: var(--paper-raised); }
+  .chapter-row .num{
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+    margin-right: 8px;
+  }
+
+  .reading h2{
+    font-size: 1.4rem;
+    margin-bottom: 2px;
+  }
+  .reading .chapter-heading{
+    color: var(--ink-soft);
+    font-style: italic;
+    margin-bottom: 24px;
+  }
+  .reading .body-text{
+    white-space: pre-wrap;
+    font-size: 1.05rem;
+    max-width: 68ch;
+  }
+
+  .chapter-nav{
+    display:flex;
+    justify-content: space-between;
+    margin-top: 36px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+  .chapter-nav button{
+    font-family: inherit;
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    padding: 8px 14px;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  .chapter-nav button:disabled{
+    opacity: 0.35;
+    cursor: default;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="site">
+    <h1>Fic Library</h1>
+    <p>A personal shelf. Search below or browse everything.</p>
+  </header>
+
+  <div id="app"></div>
+</div>
+
+<script>
+/* ============================================================
+   YOUR FICS LIVE HERE.
+   To add a new one-shot or a new complete/ongoing fic, copy one
+   of the objects below (including the { and }), paste it as a
+   new entry in this array, and fill in your own details.
+
+   status: "complete" | "ongoing" | "oneshot"
+   chapters: a list of { title, content }. One-shots just have
+   one chapter in the list.
+
+   To add a new chapter to an ongoing fic, find that fic's entry
+   below and add a new { title: "...", content: "..." } object
+   to the end of its chapters array.
+
+   updated: any text you like, e.g. "2026-09-20" — just used for
+   the "sort by recently updated" option, and shown on the card.
+   ============================================================ */
+
+let stories = [
+  {
+    title: "The Long Way Round",
+    fandom: "Original Sample Fandom",
+    tags: ["slow burn", "angst", "canon divergence"],
+    status: "complete",
+    updated: "2026-08-01",
+    chapters: [
+      { title: "Chapter 1: Departure",
+        content: "This is a placeholder for your first chapter's text.\n\nPaste your actual chapter content here, paragraph breaks and all — it will display exactly as written." },
+      { title: "Chapter 2: The Crossing",
+        content: "Placeholder text for chapter two.\n\nReplace this with your real chapter." },
+      { title: "Chapter 3: Home",
+        content: "Placeholder text for chapter three, the final chapter of this complete fic." }
+    ]
+  },
+  {
+    title: "Static on the Line",
+    fandom: "Original Sample Fandom",
+    tags: ["hurt/comfort", "ongoing"],
+    status: "ongoing",
+    updated: "2026-09-15",
+    chapters: [
+      { title: "Chapter 1: Signal Lost",
+        content: "Placeholder text for the first chapter of an ongoing fic. Add new chapters below this one as you write them." },
+      { title: "Chapter 2: Static",
+        content: "Placeholder text for the second chapter, posted later." }
+    ]
+  },
+  {
+    title: "A Quiet Evening",
+    fandom: "Another Sample Fandom",
+    tags: ["fluff", "one-shot", "domestic"],
+    status: "oneshot",
+    updated: "2026-07-10",
+    chapters: [
+      { title: "A Quiet Evening",
+        content: "Placeholder text for your one-shot. One-shots just get a single chapter entry, and clicking the card can skip straight to reading it." }
+    ]
+  }
+];
+
+/* ============================================================
+   Everything below this line is the app itself — you shouldn't
+   need to touch it just to add or update fics.
+   ============================================================ */
+
+let state = {
+  query: "",
+  statusFilter: "all",
+  sort: "az",
+  view: "list",       // "list" | "detail" | "reading"
+  activeStory: null,  // index into `stories`
+  activeChapter: null // index into that story's chapters
+};
+
+function statusLabel(s){
+  if (s === "complete") return "complete";
+  if (s === "ongoing") return "ongoing";
+  return "one-shot";
+}
+
+function matches(story, q){
+  if (!q) return true;
+  q = q.toLowerCase();
+  if (story.title.toLowerCase().includes(q)) return true;
+  if (story.fandom.toLowerCase().includes(q)) return true;
+  if (story.tags.some(t => t.toLowerCase().includes(q))) return true;
+  if (story.chapters.some(c => c.title.toLowerCase().includes(q))) return true;
+  return false;
+}
+
+function getFiltered(){
+  let list = stories.filter(s => matches(s, state.query));
+  if (state.statusFilter !== "all"){
+    list = list.filter(s => s.status === state.statusFilter);
+  }
+  if (state.sort === "az"){
+    list = list.slice().sort((a,b) => a.title.localeCompare(b.title));
+  } else if (state.sort === "fandom"){
+    list = list.slice().sort((a,b) => a.fandom.localeCompare(b.fandom));
+  } else if (state.sort === "updated"){
+    list = list.slice().sort((a,b) => (b.updated || "").localeCompare(a.updated || ""));
+  }
+  return list;
+}
+
+function escapeHtml(str){
+  return str.replace(/[&<>"']/g, m => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[m]));
+}
+
+function render(){
+  const app = document.getElementById('app');
+
+  if (state.view === "reading"){
+    app.innerHTML = renderReading();
+    attachReadingHandlers();
+    return;
+  }
+
+  if (state.view === "detail"){
+    app.innerHTML = renderDetail();
+    attachDetailHandlers();
+    return;
+  }
+
+  app.innerHTML = renderList();
+  attachListHandlers();
+}
+
+function renderList(){
+  const list = getFiltered();
+  const countText = list.length === stories.length
+    ? `${stories.length} stories`
+    : `${list.length} of ${stories.length} stories`;
+
+  const cards = list.map((s, i) => {
+    const realIndex = stories.indexOf(s);
+    return `
+      <div class="card" tabindex="0" data-index="${realIndex}">
+        <div class="card-top">
+          <h3>${escapeHtml(s.title)}</h3>
+          <span class="badge ${s.status}">${statusLabel(s.status)}</span>
+        </div>
+        <p class="fandom">${escapeHtml(s.fandom)}</p>
+        <div class="tags">
+          ${s.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
+        </div>
+        <p class="meta-line">${s.chapters.length} chapter${s.chapters.length === 1 ? '' : 's'}${s.updated ? ' &middot; updated ' + escapeHtml(s.updated) : ''}</p>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="controls">
+      <input id="search" type="text" placeholder="Search title, fandom, tag, or chapter..." value="${escapeHtml(state.query)}">
+      <select id="sort">
+        <option value="az" ${state.sort==='az'?'selected':''}>Title A–Z</option>
+        <option value="fandom" ${state.sort==='fandom'?'selected':''}>By fandom</option>
+        <option value="updated" ${state.sort==='updated'?'selected':''}>Recently updated</option>
+      </select>
+    </div>
+    <div class="status-filters">
+      <button data-status="all" class="${state.statusFilter==='all'?'active':''}">All</button>
+      <button data-status="complete" class="${state.statusFilter==='complete'?'active':''}">Complete</button>
+      <button data-status="ongoing" class="${state.statusFilter==='ongoing'?'active':''}">Ongoing</button>
+      <button data-status="oneshot" class="${state.statusFilter==='oneshot'?'active':''}">One-shots</button>
+    </div>
+    <p class="count">${countText}</p>
+    ${list.length ? cards : '<p class="empty">Nothing matches that search.</p>'}
+  `;
+}
+
+function attachListHandlers(){
+  document.getElementById('search').addEventListener('input', e => {
+    state.query = e.target.value;
+    render();
+    document.getElementById('search').focus();
+    const val = document.getElementById('search').value;
+    document.getElementById('search').setSelectionRange(val.length, val.length);
+  });
+  document.getElementById('sort').addEventListener('change', e => {
+    state.sort = e.target.value;
+    render();
+  });
+  document.querySelectorAll('.status-filters button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.statusFilter = btn.dataset.status;
+      render();
+    });
+  });
+  document.querySelectorAll('.card').forEach(card => {
+    const open = () => {
+      const idx = parseInt(card.dataset.index, 10);
+      const story = stories[idx];
+      state.activeStory = idx;
+      if (story.chapters.length === 1){
+        state.activeChapter = 0;
+        state.view = "reading";
+      } else {
+        state.view = "detail";
+      }
+      render();
+    };
+    card.addEventListener('click', open);
+    card.addEventListener('keypress', e => { if (e.key === 'Enter') open(); });
+  });
+}
+
+function renderDetail(){
+  const s = stories[state.activeStory];
+  const rows = s.chapters.map((c, i) => `
+    <div class="chapter-row" data-chapter="${i}">
+      <span><span class="num">${i+1}.</span>${escapeHtml(c.title)}</span>
+    </div>
+  `).join('');
+
+  return `
+    <button class="back" id="backBtn">&larr; back to library</button>
+    <div class="detail">
+      <span class="badge ${s.status}">${statusLabel(s.status)}</span>
+      <h2>${escapeHtml(s.title)}</h2>
+      <p class="fandom">${escapeHtml(s.fandom)}</p>
+      <div class="tags">${s.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+      <div class="chapter-list">${rows}</div>
+    </div>
+  `;
+}
+
+function attachDetailHandlers(){
+  document.getElementById('backBtn').addEventListener('click', () => {
+    state.view = "list";
+    render();
+  });
+  document.querySelectorAll('.chapter-row').forEach(row => {
+    row.addEventListener('click', () => {
+      state.activeChapter = parseInt(row.dataset.chapter, 10);
+      state.view = "reading";
+      render();
+    });
+  });
+}
+
+function renderReading(){
+  const s = stories[state.activeStory];
+  const c = s.chapters[state.activeChapter];
+  const isOnly = s.chapters.length === 1;
+  const backTarget = isOnly ? "list" : "detail";
+  const backLabel = isOnly ? "back to library" : "back to chapter list";
+
+  const hasPrev = state.activeChapter > 0;
+  const hasNext = state.activeChapter < s.chapters.length - 1;
+
+  return `
+    <button class="back" id="backBtn">&larr; ${backLabel}</button>
+    <div class="reading">
+      <h2>${escapeHtml(s.title)}</h2>
+      ${!isOnly ? `<p class="chapter-heading">${escapeHtml(c.title)}</p>` : ''}
+      <div class="body-text">${escapeHtml(c.content)}</div>
+      ${!isOnly ? `
+        <div class="chapter-nav">
+          <button id="prevBtn" ${hasPrev ? '' : 'disabled'}>&larr; previous chapter</button>
+          <button id="nextBtn" ${hasNext ? '' : 'disabled'}>next chapter &rarr;</button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function attachReadingHandlers(){
+  document.getElementById('backBtn').addEventListener('click', () => {
+    const s = stories[state.activeStory];
+    state.view = (s.chapters.length === 1) ? "list" : "detail";
+    render();
+    window.scrollTo(0,0);
+  });
+  const prev = document.getElementById('prevBtn');
+  const next = document.getElementById('nextBtn');
+  if (prev) prev.addEventListener('click', () => {
+    state.activeChapter -= 1;
+    render();
+    window.scrollTo(0,0);
+  });
+  if (next) next.addEventListener('click', () => {
+    state.activeChapter += 1;
+    render();
+    window.scrollTo(0,0);
+  });
+}
+
+render();
+</script>
+</body>
+</html>
